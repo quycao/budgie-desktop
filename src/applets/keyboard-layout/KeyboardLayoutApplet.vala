@@ -32,6 +32,7 @@ errordomain InputMethodError {
 class AppletIBusManager : GLib.Object
 {
     private HashTable<string,weak IBus.EngineDesc> engines = null;
+    private List<IBus.EngineDesc>? enginelist = null;
 
     private bool did_ibus_init = false;
     private bool ibus_available = true;
@@ -83,10 +84,12 @@ class AppletIBusManager : GLib.Object
     private void on_engines_get(GLib.Object? o, GLib.AsyncResult? res)
     {
         try {
-            var engines = this.bus.list_engines_async_finish(res);
+            /* var engines = this.bus.list_engines_async_finish(res); */
+            this.enginelist = this.bus.list_engines_async_finish(res);
             this.reset_ibus();
             /* Store reference to the engines */
-            foreach (var engine in engines) {
+            /* foreach (var engine in engines) { */
+            foreach (var engine in this.enginelist) {
                 this.engines[engine.get_name()] = engine;
             }
         } catch (Error e) {
@@ -125,8 +128,12 @@ class AppletIBusManager : GLib.Object
      * Attempt to grab the ibus engine for the given name if it
      * exists, or returns null
      */
-    public weak IBus.EngineDesc? get_engine(string name)
+    /* public weak IBus.EngineDesc? get_engine(string name) */
+    public unowned IBus.EngineDesc? get_engine(string name)
     {
+        if (this.engines == null) {
+            return null;
+        }
         return this.engines.lookup(name);
     }
 }
